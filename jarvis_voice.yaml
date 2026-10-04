@@ -1,0 +1,161 @@
+substitutions:
+  jarvis_backend_host: !secret jarvis_backend_host
+  jarvis_backend_key: !secret jarvis_backend_key
+  jarvis_realtime_host: !secret jarvis_realtime_host
+
+esphome:
+  name: jarvis-eyes
+  friendly_name: Jarvis Eyes
+  project:
+    name: jarvis.realtime
+    version: "2026.10.04"
+  includes:
+    - jarvis_speaker.h
+    - jarvis_cloud.h
+  on_boot:
+    priority: -100
+    then:
+      - lambda: jarvis_speaker_init();
+      - micro_wake_word.start
+
+esp32:
+  board: seeed_xiao_esp32s3
+  flash_size: 8MB
+  framework:
+    type: esp-idf
+    sdkconfig_options:
+      CONFIG_MBEDTLS_CERTIFICATE_BUNDLE: "y"
+      # The default 5760-byte TCP window cannot sustain live PCM over a
+      # mobile hotspot's RTT; allow several audio frames to be in flight.
+      CONFIG_LWIP_TCP_SND_BUF_DEFAULT: "32768"
+      CONFIG_LWIP_TCP_WND_DEFAULT: "32768"
+      CONFIG_LWIP_TCP_RECVMBOX_SIZE: "16"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  fast_connect: true
+  power_save_mode: none
+
+logger:
+  level: DEBUG
+  baud_rate: 115200
+  hardware_uart: USB_SERIAL_JTAG
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+i2c:
+  sda: GPIO5
+  scl: GPIO6
+  frequency: 400kHz
+
+display:
+  - platform: ssd1306_i2c
+    id: oled
+    model: SSD1306_128X64
+    address: 0x3C
+    flip_x: true
+    flip_y: true
+    # A 30 FPS OLED animation can starve Wi-Fi/TLS on this small controller.
+    # 4 FPS still looks smooth enough for the slow eye movement and preserves
+    # time for the voice round trip.
+    update_interval: 250ms
+    lambda: |-
+      const uint32_t now = millis();
+      // ESP-IDF port of the FluxGarage RoboEyes geometry used in our test.
+      // Rounded eyes, smooth idle gaze, curiosity, auto-blink and four moods.
+      static float gaze_x = 0.0f;
+      static float gaze_y = 0.0f;
+      const int8_t gaze_positions[8][2] = {
+        {0, 0}, {-13, -7}, {12, -5}, {15, 5}, {-10, 7}, {0, -8}, {9, 1}, {-7, 2}
+      };
+      const uint8_t gaze_step = (now / 2500U) % 8U;
+      gaze_x += (gaze_positions[gaze_step][0] - gaze_x) * 0.12f;
+      gaze_y += (gaze_positions[gaze_step][1] - gaze_y) * 0.12f;
+
+      const bool blink = (now % 4300U) < 145U;
+      const int eye_w = 36;
+      int eye_h = blink ? 2 : 36;
+      const int spacing = 10;
+      const int total_w = eye_w * 2 + spacing;
+      const int left_x = (128 - total_w) / 2 + static_cast<int>(gaze_x);
+      const int right_x = left_x + eye_w + spacing;
+      const int left_extra = gaze_x < -9.0f ? 8 : 0;
+      const int right_extra = gaze_x > 9.0f ? 8 : 0;
+      const int left_h = eye_h + (blink ? 0 : left_extra);
+      const int right_h = eye_h + (blink ? 0 : right_extra);
+      const int left_y = 32 - left_h / 2 + static_cast<int>(gaze_y);
+      const int right_y = 32 - right_h / 2 + static_cast<int>(gaze_y);
+
+      auto rounded_eye = [&](int x, int y, int w, int h, int radius,
+                             Color color = COLOR_ON) {
+        radius = std::min(radius, std::min(w / 2, h / 2));
+        if (radius <= 1) {
+          it.filled_rectangle(x, y, w, h, color);
+          return;
+        }
+        it.filled_rectangle(x + radius, y, w - 2 * radius, h, color);
+        it.filled_rectangle(x, y + radius, w, h - 2 * radius, color);
+        it.filled_circle(x + radius, y + radius, radius, color);
+        it.filled_circle(x + w - radius - 1, y + radius, radius, color);
+        it.filled_circle(x + radius, y + h - radius - 1, radius, color);
+        it.filled_circle(x + w - radius - 1, y + h - radius - 1, radius, color);
+      };
+
+      rounded_eye(left_x, left_y, eye_w, left_h, 8);
+      rounded_eye(right_x, right_y, eye_w, right_h, 8);
+
+      const uint8_t mood = (now / 6000U) % 4U;
+      if (!blink && mood == 1U) {  // tired
+        const int lid = 15;
+        it.filled_triangle(left_x, left_y - 1, left_x + eye_w, left_y - 1,
+                           left_x, left_y + lid, COLOR_OFF);
+        it.filled_triangle(right_x, right_y - 1, right_x + eye_w, right_y - 1,
+                           right_x + eye_w, right_y + lid, COLOR_OFF);
+      } else if (!blink && mood == 2U) {  // angry
+        const int lid = 15;
+        it.filled_triangle(left_x, left_y - 1, left_x + eye_w, left_y - 1,
+                           left_x + eye_w, left_y + lid, COLOR_OFF);
+        it.filled_triangle(right_x, right_y - 1, right_x + eye_w, right_y - 1,
+                           right_x, right_y + lid, COLOR_OFF);
+      } else if (!blink && mood == 3U) {  // happy
+        rounded_eye(left_x - 1, left_y + left_h - 17, eye_w + 2, 36, 8, COLOR_OFF);
+        rounded_eye(right_x - 1, right_y + right_h - 17, eye_w + 2, 36, 8, COLOR_OFF);
+      }
+
+i2s_audio:
+  - id: microphone_bus
+    i2s_bclk_pin: GPIO44
+    i2s_lrclk_pin: GPIO9
+
+microphone:
+  - platform: i2s_audio
+    id: jarvis_microphone
+    i2s_audio_id: microphone_bus
+    i2s_din_pin: GPIO1
+    adc_type: external
+    pdm: false
+    channel: left
+    sample_rate: 16000
+    bits_per_sample: 32bit
+
+micro_wake_word:
+  id: jarvis_wake_word
+  microphone:
+    microphone: jarvis_microphone
+    channels: 0
+    gain_factor: 1
+  models:
+    - model:
+        type: local
+        path: hey_jarvis.json
+  stop_after_detection: true
+  on_wake_word_detected:
+    then:
+      - logger.log:
+          format: "WAKE WORD DETECTED: %s"
+          args: ["wake_word.c_str()"]
+      - lambda: |-
+          jarvis_handle_conversation("${jarvis_realtime_host}", "${jarvis_backend_key}");

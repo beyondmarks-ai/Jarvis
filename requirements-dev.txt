@@ -1,0 +1,3 @@
+-r realtime_relay/requirements.txt
+PyYAML==6.0.3
+esphome==2026.8.2

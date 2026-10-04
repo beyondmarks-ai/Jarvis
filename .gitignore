@@ -1,0 +1,51 @@
+# Credentials and local deployment settings
+secrets.yaml
+secrets.*.yaml
+!secrets.example.yaml
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.pfx
+*.p12
+local.settings.json
+*.credentials.json
+*.tfstate*
+
+# Firmware output and full device dumps can contain Wi-Fi credentials
+.esphome/
+build/
+dist/
+backups/
+esp32_backups/
+*.bin
+*.elf
+*.map
+*.ota
+
+# Python environments, caches and packaging
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.python_packages/
+*.egg-info/
+
+# Local diagnostics, recordings, headers and assistant state
+.tmp*
+*.tmp
+*.log
+*.pcm
+*.wav
+*.ulaw
+*.mp3
+*.zip
+*.tar*
+.claude/
+.codex/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
