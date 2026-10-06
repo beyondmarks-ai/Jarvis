@@ -1,8 +1,36 @@
 # Jarvis ESP32 voice assistant
 
-Source backup of the working ESP32-S3 assistant, prepared **before wake-word sensitivity tuning**. Nothing in this repository preparation changes the running device or cloud deployment.
+Source backup of the working ESP32-S3 assistant, prepared **before wake-word sensitivity tuning**, plus a separate Android-phone microphone mode. The original baseline source remains unchanged for rollback.
 
 Say **Hey Jarvis**, wait for the beep, then ask your question. The relay detects the question's language and answers in English, Hindi, Bengali, Tamil, Telugu, Gujarati, Kannada, Malayalam, Marathi, Punjabi or Odia. Speaking pace is 1.0; speaker gain is 3x with peak limiting.
+
+## Optional Android microphone app
+
+[Phone microphone hub](phone_mics/README.md) adds up to three Android browser
+microphones with a pretrained openWakeWord Hey Jarvis detector. It uses separate
+speaker firmware (`jarvis_phone_speaker.yaml`) in place of the on-device-wake baseline.
+Phones require trusted HTTPS and must remain open/unlocked. No deployment or flash
+is automatic. This workspace's phone hub and speaker firmware were deployed on
+2026-10-05 and updated on 2026-10-06. The user confirmed smooth reply playback after
+the bounded startup-buffer update; reliable five-metre wake detection and three-phone
+real-room accuracy are not established. The pretrained openWakeWord models have
+non-commercial license terms.
+
+The phone hub also supports [shared household memory](phone_mics/azure_memory/README.md):
+explicit remember commands, name introductions, multilingual recall, corrections and
+confirmed deletion, backed by Azure Cosmos DB and local multilingual embeddings.
+All connected phones share these facts; it does not identify individual speakers.
+Two persistent household personality modes, **Normal** and **Gen Z**, can be selected
+by voice or in the phone app. Gen Z includes natural Hinglish; voice speed and wake
+settings remain unchanged.
+Male (Shubh) and female (Priya) output voices can also be selected by voice command
+or in the app, independently of personality. The shared TTS helper accepts an
+optional speaker parameter while preserving Shubh as its default.
+
+Phone-speaker playback uses separate receiving/playback tasks, a soft limiter and
+a startup audio reserve with an approved maximum 200 ms waiting budget. It starts
+sooner when enough audio arrives and does not deliberately rebuffer mid-reply.
+See the phone hub README for firmware details, tests and network limitations.
 
 ## What is backed up
 

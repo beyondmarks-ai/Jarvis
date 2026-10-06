@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101919"><title>Jarvis · Room microphones</title>
+<link rel="manifest" href="/static/manifest.webmanifest"><link rel="icon" href="/static/icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/static/style.css"><link rel="stylesheet" href="/static/quality.css"><link rel="stylesheet" href="/static/memory.css"><script src="/static/app.js" type="module"></script></head>
+<body><main>
+<header><a class="brand" href="/" aria-label="Jarvis home"><span class="logo">J</span> JARVIS <span class="tag">ROOM AUDIO</span></a><span class="badge" id="connection">Offline</span></header>
+<section class="hero"><p class="eyebrow">ONE ASSISTANT. EVERY ROOM.</p><h1>Your phone.<br>Your <em>Jarvis microphone.</em></h1>
+<p class="intro">Say “Hey Jarvis” from any connected phone. Your IoT device handles the beep and the answer. Your phone stays silent.</p></section>
+<div class="layout"><section class="listen-card" aria-labelledby="statusTitle">
+<div class="card-top"><span class="eyebrow">THIS MICROPHONE</span><span id="privacyIndicator" class="dot-label">Mic off</span></div>
+<div class="orb" id="orb"><svg viewBox="0 0 64 64" aria-hidden="true"><rect x="25" y="12" width="14" height="28" rx="7"/><path d="M18 30v3a14 14 0 0 0 28 0v-3M32 47v8M24 55h16"/></svg></div>
+<h2 id="statusTitle">Ready when you are</h2><p id="statusDetail">Connect below to turn this Android phone into a room microphone.</p>
+<div class="meter" aria-label="Microphone input level"><div id="level"></div></div>
+<p id="audioStatus" class="fine">Audio off · app v7</p>
+<details class="diagnostics"><summary>Connection &amp; wake diagnostics</summary>
+<p id="hubStatus">Connect to see whether audio reaches the hub.</p><p id="wakeStatus">Wake settings unchanged.</p>
+<p class="fine">Model scores are not accuracy percentages. No recordings are saved.</p></details>
+<form id="connectForm"><label for="name">Phone name</label><input id="name" maxlength="40" autocomplete="off" placeholder="e.g. Living room" required>
+<label for="token">Microphone access key</label><input id="token" type="password" autocomplete="off" placeholder="Enter the key from your hub" required>
+<button id="connectButton" type="submit">Connect microphone <span>↗</span></button></form>
+<button id="stopButton" class="secondary" hidden>Disconnect &amp; turn mic off</button>
+<button id="restartButton" class="secondary" hidden>Restart microphone</button>
+<p id="notice" role="alert"></p><p class="fine">Microphone permission is always yours. Disconnect stops capture immediately.</p></section>
+<aside><section class="panel"><div class="panel-title"><h2>Your room network</h2><span id="count" class="count">0 / 3</span></div>
+<div class="speaker-row"><span class="device-icon">◉</span><div><strong>Jarvis IoT speaker</strong><small id="speaker">Not connected</small></div></div>
+<ul id="devices"><li class="empty">Connected microphones appear here.</li></ul></section>
+<section class="panel" aria-labelledby="testTitle"><div class="panel-title"><h2 id="testTitle">Distance check</h2><span class="count">20 sec</span></div>
+<p class="test-help">Check room noise, then say “Hey Jarvis” once in each of three prompted attempts. The IoT stays silent and other phones pause. No sensitivity settings are changed.</p>
+<label for="testDistance">Distance from this phone</label><select id="testDistance"><option value="1">1 metre</option><option value="3">3 metres</option><option value="5" selected>5 metres</option></select>
+<button id="testStart" class="secondary" disabled>Start distance check</button>
+<button id="testCancel" class="secondary" hidden>Cancel distance check</button>
+<progress id="testProgress" max="20" value="0" hidden aria-label="Distance check progress"></progress>
+<p id="testPrompt" class="test-help">Connect your microphone to begin.</p>
+<p id="testResult" class="test-help" role="status"></p><button id="copyTest" class="secondary" hidden>Copy test report</button>
+<p class="fine">A short test does not guarantee five-metre reliability. Repeat with normal fan and room noise.</p></section>
+<section class="panel" aria-labelledby="modeTitle">
+<div class="panel-title"><h2 id="modeTitle">Jarvis personality</h2><span id="modeCurrent" class="count">Not loaded</span></div>
+<p class="test-help">Exactly two modes. One shared setting for every phone; your memories stay the same.</p>
+<div class="mode-buttons" role="group" aria-label="Jarvis personality mode"><button type="button" id="modeNormal" class="secondary" aria-pressed="false" disabled>Normal</button><button type="button" id="modeGenz" class="secondary" aria-pressed="false" disabled>Gen Z</button></div>
+<p class="test-help">Normal: clear and straightforward. Gen Z: casual, playful, and natural Hinglish for Hindi conversations. Same voice and speaking speed.</p>
+<p class="fine">Say “Switch to Gen Z mode” or “Switch to Normal mode” after the wake beep. You can also say “Gen Z mode on karo.” The last selection is saved.</p>
+<p id="modeStatus" class="test-help" role="status">Enter your access key above to load the current mode.</p>
+</section>
+<section class="panel" aria-labelledby="voiceTitle">
+<div class="panel-title"><h2 id="voiceTitle">Speaking voice</h2><span id="voiceCurrent" class="count">Not loaded</span></div>
+<div class="voice-buttons" role="group" aria-label="Jarvis speaking voice"><button type="button" id="voiceMale" class="secondary" aria-pressed="false" disabled>Male · Shubh</button><button type="button" id="voiceFemale" class="secondary" aria-pressed="false" disabled>Female · Priya</button></div>
+<p class="test-help">Change how Jarvis sounds, independently of Normal or Gen Z mode. Your memories and speaking speed stay the same.</p>
+<p class="fine">After the beep, say “Change to a female voice”, “Change to a male voice”, or “Female voice mein bolo”. The choice is saved for all phones.</p>
+<p id="voiceStatus" class="test-help" role="status">Enter your access key above to load the current voice.</p>
+</section>
+<section class="panel" aria-labelledby="memoryTitle">
+<div class="panel-title"><h2 id="memoryTitle">Household memory</h2><span class="count">SHARED</span></div>
+<p class="test-help">Everyone with this access key can recall or delete these facts. Save things explicitly: “Remember that I prefer tea.” A clear “My name is…” introduction is also saved. Do not save passwords or private credentials.</p>
+<form id="memoryForm"><label for="memoryText">Ask, remember, or forget</label><input id="memoryText" maxlength="1000" placeholder="What is my name?" required autocomplete="off"><button id="memorySend" type="submit">Ask memory</button></form>
+<p id="memoryAnswer" class="test-help" role="status" aria-live="polite">Uses the access key above; no microphone or speaker connection needed for text.</p>
+<button id="memoryRefresh" class="secondary">Show saved facts</button><ul id="memoryFacts" aria-label="Saved household facts"></ul>
+<p class="fine">Voice deletion asks you to say “confirm forget” within 90 seconds. Forget removes live facts and search vectors; Azure backups may retain a copy for up to 8 hours. Recent conversation context is temporary, not a saved archive.</p>
+</section>
+<section class="panel instructions"><p class="eyebrow">HOW IT WORKS</p><ol><li><span>01</span><div><strong>Connect your phones</strong><p>Open this app on up to three Android phones.</p></div></li><li><span>02</span><div><strong>Say “Hey Jarvis”</strong><p>Wait for the beep from your IoT, then ask your question.</p></div></li><li><span>03</span><div><strong>One clear answer</strong><p>One microphone takes the turn. The others wait until the answer ends.</p></div></li></ol></section>
+<div class="note"><strong>Keep this app open.</strong> Android can suspend the microphone when the screen locks or you switch apps. We request a screen wake lock while connected.</div></aside></div>
+<footer><span>Phone → private hub → IoT speaker</span><span>Wake audio stays at your hub. Questions go to its configured speech provider.</span></footer>
+</main><script type="module" src="/static/memory.js"></script><script type="module" src="/static/mode.js"></script><script type="module" src="/static/voice.js"></script></body></html>

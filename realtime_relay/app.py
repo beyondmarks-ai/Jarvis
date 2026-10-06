@@ -151,7 +151,7 @@ async def receive_question(websocket: WebSocket) -> bytes:
                 return bytes(audio)
 
 
-async def stream_tts_to_device(device: WebSocket, text: str, language: str) -> None:
+async def stream_tts_to_device(device: WebSocket, text: str, language: str, *, speaker: str = "shubh") -> None:
     """Receive Sarvam MP3 WebSocket chunks, decode continuously, send mu-law."""
     if not shutil.which("ffmpeg"):
         raise RuntimeError("ffmpeg is required for streaming TTS")
@@ -192,7 +192,7 @@ async def stream_tts_to_device(device: WebSocket, text: str, language: str) -> N
                     "model": "bulbul:v3",
                     "target_language_code": language if language else "en-IN",
                     "language_code": language if language else "en-IN",
-                    "speaker": "shubh",
+                    "speaker": speaker,
                     "pace": 1.0,
                     "speech_sample_rate": "24000",
                 },

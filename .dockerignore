@@ -1,0 +1,10 @@
+**
+!phone_mics/
+!phone_mics/**
+!realtime_relay/
+!realtime_relay/app.py
+**/__pycache__/
+**/*.pyc
+**/.env
+**/.env.*
+!phone_mics/.env.example

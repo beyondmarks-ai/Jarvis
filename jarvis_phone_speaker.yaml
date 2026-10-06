@@ -1,0 +1,67 @@
+# OPTIONAL replacement firmware. Do not upload until the phone hub is ready.
+# Create an ignored secrets.phone.yaml wrapper with private substitution overrides.
+substitutions:
+  phone_hub_host: CHANGE_ME.example.com
+  phone_hub_key: CHANGE_ME_DEVICE_KEY
+
+esphome:
+  name: jarvis-eyes
+  friendly_name: Jarvis Phone Speaker
+  includes:
+    - jarvis_speaker.h
+    - phone_mics/firmware/phone_audio_dsp.h
+    - phone_mics/firmware/phone_audio_startup.h
+    - phone_mics/firmware/phone_audio_player.h
+    - phone_mics/firmware/speaker_bridge.h
+  on_boot:
+    priority: -100
+    then:
+      - lambda: |-
+          jarvis_speaker_init();
+          phone_speaker_start("${phone_hub_host}", "${phone_hub_key}");
+
+esp32:
+  board: seeed_xiao_esp32s3
+  flash_size: 8MB
+  framework:
+    type: esp-idf
+    sdkconfig_options:
+      CONFIG_MBEDTLS_CERTIFICATE_BUNDLE: "y"
+      # Capacity, not prefill: let the cloud send ahead over higher-RTT hotspot links.
+      CONFIG_LWIP_TCP_WND_DEFAULT: "32768"
+      CONFIG_LWIP_TCP_RECVMBOX_SIZE: "32"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  fast_connect: true
+  power_save_mode: none
+
+logger:
+  level: INFO
+  baud_rate: 115200
+  hardware_uart: USB_SERIAL_JTAG
+
+psram:
+  mode: octal
+  speed: 80MHz
+
+i2c:
+  sda: GPIO5
+  scl: GPIO6
+  frequency: 400kHz
+
+display:
+  - platform: ssd1306_i2c
+    model: SSD1306_128X64
+    address: 0x3C
+    flip_x: true
+    flip_y: true
+    update_interval: 250ms
+    lambda: |-
+      const int shift = static_cast<int>((millis()/1800)%3)*4-4;
+      const int height = millis()%4300 < 150 ? 2 : 30;
+      it.filled_rectangle(23+shift, 32-height/2, 34, height);
+      it.filled_rectangle(69+shift, 32-height/2, 34, height);
+      if (phone_hub_connected.load()) it.filled_circle(123, 4, 2);
+      if (phone_hub_active.load()) it.line(52, 57, 76, 57);
