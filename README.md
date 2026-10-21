@@ -85,3 +85,10 @@ The local baseline commit/tag allow recovery before future tuning. See [recovery
 ## Licensing
 
 See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The wake model carries Apache-2.0 terms; the OLED drawing is identified in the existing source as a RoboEyes-derived port, whose upstream license is GPL-3.0. No new blanket license is chosen for user-authored code. Review those obligations before public redistribution.
+
+<!-- beyond-marks-credit:start -->
+---
+### Built by Beyond Marks AI Academy
+
+Developed by **Rakesh Kumar** at [Beyond Marks AI Academy](https://beyondmarks.ai).
+<!-- beyond-marks-credit:end -->
